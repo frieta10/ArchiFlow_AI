@@ -1,0 +1,7 @@
+{
+  "name": "Archiflow AI - Intelligent Technical Visualization",
+  "description": "A professional AI-assisted platform to generate technical visualizations like flowcharts, architecture diagrams, and user journeys using Mermaid and Gemini AI.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

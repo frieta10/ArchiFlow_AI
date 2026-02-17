@@ -1,0 +1,12 @@
+Users table schema:
+- id: uuid
+- email: text
+- name: text
+- password_hash: text
+- auth_provider: text
+- status: text
+- last_login_at: timestamp with time zone
+- created_at: timestamp with time zone
+
+Sample User Data:
+No users found.
