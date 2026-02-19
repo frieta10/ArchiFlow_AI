@@ -23,6 +23,7 @@ We have created a script that automates the entire deployment process, including
     ```
 
 3.  Follow the prompts to enter your Project ID, Region, and Environment Variables.
+    *   **Note:** If you are not logged in, the script will prompt you to run `gcloud auth login`.
 
 ---
 
@@ -103,3 +104,11 @@ After deployment, `gcloud` will output a Service URL (e.g., `https://archiflow-s
 - **Logs**: View logs in the Google Cloud Console under "Cloud Run" -> "Logs".
 - **Quota/Billing**: Ensure your quota allows for the requested CPU/Memory.
 - **Environment Variables**: If the app crashes on start, double-check your `DB_` connection strings and `API_KEY`.
+- **Authentication Errors**: If you see "Your current active account does not have any valid credentials", run:
+  ```bash
+  gcloud auth login
+  ```
+  If you are using a Service Account key file, activate it first:
+  ```bash
+  gcloud auth activate-service-account --key-file=KEY_FILE.json
+  ```

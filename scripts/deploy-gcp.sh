@@ -11,6 +11,16 @@ echo -e "${BLUE}=== ArchiFlow AI - Google Cloud Deployment Script ===${NC}"
 echo "This script will deploy ArchiFlow AI to Google Cloud Run."
 echo ""
 
+# 0. Check Authentication
+ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+if [ -z "$ACTIVE_ACCOUNT" ]; then
+    echo -e "${YELLOW}No active Google Cloud account found.${NC}"
+    echo "Running 'gcloud auth login'..."
+    gcloud auth login
+else
+    echo -e "Authenticated as: ${GREEN}$ACTIVE_ACCOUNT${NC}"
+fi
+
 # 1. Configuration
 read -p "Enter your Google Cloud Project ID: " PROJECT_ID
 read -p "Enter the Region (default: us-central1): " REGION
