@@ -1,14 +1,28 @@
 import { GoogleGenAI } from "@google/genai";
 import { DiagramType } from "../types";
+import { ENV } from "../config/env";
 
-// Initialize AI Client (Server-side Only)
-// In production, use process.env.API_KEY
-// In production, use process.env.API_KEY
-const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+// Initialize AI Client
+// Using ENV.API_KEY which is resolved from .env.local or .env
+const apiKey = ENV.API_KEY;
+const isPlaceholder = (key?: string) => key === 'your_google_api_key_here';
+
+const shouldUseMock = ENV.MOCK_AI || !apiKey || isPlaceholder(apiKey);
+
+if (!shouldUseMock) {
+    console.log('[Orchestrator] AI Client initialized with valid API Key.');
+} else {
+    console.warn('[Orchestrator] AI Client running in MOCK MODE.');
+}
+
+const ai = (apiKey && !isPlaceholder(apiKey)) ? new GoogleGenAI({ apiKey: apiKey! }) : null;
 
 const MAX_NODES = 30;
 const MAX_LAYERS = 5;
+
+// Simple in-memory cache
+const cache = new Map<string, string>();
+const MAX_CACHE_SIZE = 50;
 
 export async function orchestrateDiagramSynthesis(
     prompt: string,
@@ -18,9 +32,19 @@ export async function orchestrateDiagramSynthesis(
     fileContent?: string,
     pdfBase64?: string
 ): Promise<string> {
-    // MOCK MODE: If no API key is configured, return a mock response immediately.
-    if (!ai) {
-        console.warn("[Orchestrator] WARN: No API Key found. Using MOCK MODE.");
+
+    // Generate cache key
+    const cacheKey = `${prompt}-${type}-${persona}-${imageBase64 ? 'img' : ''}-${fileContent ? 'file' : ''}-${pdfBase64 ? 'pdf' : ''}`;
+
+    // 2. Cache Lookup (SRS 7.2)
+    if (cache.has(cacheKey)) {
+        console.log('[Orchestrator] Cache hit.');
+        return cache.get(cacheKey)!;
+    }
+
+    // MOCK MODE: If no API key is configured or MOCK_AI is true
+    if (shouldUseMock || !ai) {
+        console.warn("[Orchestrator] Using MOCK response (Mock Mode active or Missing API Key).");
 
         // Simulate network delay for realism
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -32,7 +56,10 @@ export async function orchestrateDiagramSynthesis(
   C -->|Invalid Token| E[Error Response]
   D --> F[(Database)]
   D --> G[AI Service (Mocked)]
-  style G fill:#f9f,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5`;
+  style G fill:#f9f,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5
+  subgraph Mock Mode
+    G
+  end`;
 
         return mockDiagram;
     }
@@ -43,11 +70,9 @@ export async function orchestrateDiagramSynthesis(
         throw new Error("REJECTED: Request exceeds allowed complexity limit.");
     }
 
-    // 2. Cache Lookup (SRS 7.2)
-    // TODO: Implement Redis cache check here
-
     // 3. Provider Selection (SRS 7.1)
-    const model = (imageBase64 || pdfBase64) ? 'gemini-2.0-flash' : 'gemini-2.0-flash'; // Optimized for cost/speed
+    // Use configured model or default to gemini-2.0-flash
+    const model = ENV.GEMINI_MODEL || 'gemini-2.0-flash';
 
     const systemInstruction = `
     You are Component [7] AI Orchestration Layer.
@@ -94,7 +119,17 @@ export async function orchestrateDiagramSynthesis(
         });
 
         // 4. Component [9] Result Processor
-        return response.text?.replace(/```mermaid/g, '').replace(/```/g, '').trim() || "";
+        const result = response.text?.replace(/```mermaid/g, '').replace(/```/g, '').trim() || "";
+
+        // Update cache
+        if (cache.size >= MAX_CACHE_SIZE) {
+            const firstKey = cache.keys().next().value;
+            if (firstKey) cache.delete(firstKey);
+        }
+        cache.set(cacheKey, result);
+
+        return result;
+
     } catch (error) {
         console.error("[7] Orchestration Error:", error);
         throw error;

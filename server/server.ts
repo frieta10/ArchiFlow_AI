@@ -1,3 +1,6 @@
+import './config/env';
+import { ENV } from './config/env';
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from './middleware/auth';
@@ -150,6 +153,19 @@ app.post('/api/login', async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
+});
+
+// Health Check (Public)
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        config: {
+            mockAI: ENV.MOCK_AI,
+            model: ENV.GEMINI_MODEL,
+            hasKey: !!ENV.API_KEY
+        }
+    });
 });
 
 // Auth Guard
@@ -340,6 +356,22 @@ app.post('/api/generate', checkQuota('diagrams'), async (req, res) => {
     }
 });
 
+
+// Serve Static Assets in Production
+if (ENV.NODE_ENV === 'production') {
+    // In production (Docker), we are in /app/server/server.ts
+    // The dist folder is at /app/dist
+    const distPath = path.resolve(__dirname, '../dist');
+    app.use(express.static(distPath));
+
+    app.get('*', (req, res) => {
+        // Don't intercept API routes
+        if (req.path.startsWith('/api')) {
+            return res.status(404).json({ error: 'Not Found' });
+        }
+        res.sendFile(path.join(distPath, 'index.html'));
+    });
+}
 
 const PORT = parseInt(process.env.PORT || '3001'); // separate from Vite port
 app.listen(PORT, async () => {
