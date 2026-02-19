@@ -64,10 +64,10 @@ gcloud artifacts repositories create archiflow-repo \
 Submit a build to Cloud Build. This command zips your code, uploads it to GCP, builds the Docker image remotely, and pushes it to Artifact Registry.
 
 ```bash
-gcloud builds submit --tag us-central1-docker.pkg.dev/YOUR_PROJECT_ID/archiflow-repo/archiflow-app:latest
+gcloud builds submit --tag us-central1-docker.pkg.dev/YOUR_PROJECT_ID/archiflow-repo/archiflow-app:latest .
 ```
 
-*(Replace `YOUR_PROJECT_ID` with your actual project ID)*
+*(Replace `YOUR_PROJECT_ID` with your actual project ID, and don't forget the trailing dot `.`)*
 
 ### Step 4: Deploy to Cloud Run
 

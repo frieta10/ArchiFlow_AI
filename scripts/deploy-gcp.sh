@@ -53,7 +53,7 @@ fi
 IMAGE_TAG="$REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/archiflow-app:latest"
 echo -e "\n${BLUE}Building and pushing Docker image to Cloud Build...${NC}"
 echo "Image Tag: $IMAGE_TAG"
-gcloud builds submit --tag $IMAGE_TAG
+gcloud builds submit --tag $IMAGE_TAG .
 
 # 5. Collect Environment Variables
 echo -e "\n${YELLOW}Configuration Required:${NC}"
