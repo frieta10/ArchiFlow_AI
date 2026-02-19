@@ -1,3 +1,5 @@
+import './config/env';
+import { ENV } from './config/env';
 import express from 'express';
 import cors from 'cors';
 import { authenticate } from './middleware/auth';
@@ -150,6 +152,19 @@ app.post('/api/login', async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Login failed' });
     }
+});
+
+// Health Check (Public)
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        config: {
+            mockAI: ENV.MOCK_AI,
+            model: ENV.GEMINI_MODEL,
+            hasKey: !!ENV.API_KEY
+        }
+    });
 });
 
 // Auth Guard
