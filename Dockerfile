@@ -26,6 +26,9 @@ COPY package.json package-lock.json ./
 # Install only production dependencies
 RUN npm ci --omit=dev
 
+# Install tsx globally to run the server in production
+RUN npm install -g tsx
+
 # Copy built frontend from builder stage
 COPY --from=builder /app/dist ./dist
 
@@ -48,4 +51,4 @@ EXPOSE 8080
 ENV NODE_ENV=production
 
 # Start the server
-CMD ["npx", "tsx", "server/server.ts"]
+CMD ["tsx", "server/server.ts"]

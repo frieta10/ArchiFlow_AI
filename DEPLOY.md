@@ -8,7 +8,29 @@ This guide will walk you through deploying the ArchiFlow AI application to Googl
 2.  **Google Cloud CLI**: Install the `gcloud` CLI: [Install Instructions](https://cloud.google.com/sdk/docs/install)
 3.  **Billing Enabled**: Ensure billing is enabled for your project.
 
-## Step 1: Login and Configure
+## Automated Deployment Script (Recommended)
+
+We have created a script that automates the entire deployment process, including enabling APIs, creating artifact registries, building the Docker image, and deploying to Cloud Run.
+
+1.  Login to Google Cloud:
+    ```bash
+    gcloud auth login
+    ```
+
+2.  Run the deployment script:
+    ```bash
+    ./scripts/deploy-gcp.sh
+    ```
+
+3.  Follow the prompts to enter your Project ID, Region, and Environment Variables.
+
+---
+
+## Manual Deployment Steps
+
+If you prefer to deploy manually, follow these steps:
+
+### Step 1: Login and Configure
 
 Authenticate with Google Cloud:
 
@@ -25,7 +47,7 @@ gcloud services enable run.googleapis.com \
     artifactregistry.googleapis.com
 ```
 
-## Step 2: Create a Repository
+### Step 2: Create a Repository
 
 Create an Artifact Registry repository to store your Docker images:
 
@@ -36,7 +58,7 @@ gcloud artifacts repositories create archiflow-repo \
     --description="ArchiFlow AI Docker Repository"
 ```
 
-## Step 3: Build and Push the Image
+### Step 3: Build and Push the Image
 
 Submit a build to Cloud Build. This command zips your code, uploads it to GCP, builds the Docker image remotely, and pushes it to Artifact Registry.
 
@@ -46,7 +68,7 @@ gcloud builds submit --tag us-central1-docker.pkg.dev/YOUR_PROJECT_ID/archiflow-
 
 *(Replace `YOUR_PROJECT_ID` with your actual project ID)*
 
-## Step 4: Deploy to Cloud Run
+### Step 4: Deploy to Cloud Run
 
 Deploy the container to Cloud Run. This command creates a service that scales automatically.
 
@@ -67,7 +89,7 @@ gcloud run deploy archiflow-service \
 - If using Cloud SQL, you'll need to add the `--add-cloudsql-instances` flag and use the Cloud SQL socket path or Auth Proxy.
 - For a quick test (without persistence), you can use an in-memory SQLite if supported, but this app is configured for PostgreSQL.
 
-## Step 5: Verification
+## Verification
 
 After deployment, `gcloud` will output a Service URL (e.g., `https://archiflow-service-xyz-uc.a.run.app`).
 
